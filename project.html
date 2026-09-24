@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" translate="no" class="notranslate">
 <head>
+<script>
+  // Set the theme before any CSS paints, based on the device's real clock,
+  // so there's no flash of the wrong theme on load.
+  (function(){
+    var h = new Date().getHours();
+    var theme = (h >= 6 && h < 18) ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -21,6 +30,21 @@
     --ink-dim:#9aa4b4;
     --line:rgba(232,200,116,0.14);
     --radius:18px;
+}
+  [data-theme="light"]{
+    --bg-0:#faf6ec;
+    --bg-1:#ffffff;
+    --bg-2:#f6efdf;
+    --gold-1:#b8892f;
+    --gold-2:#8a6a22;
+    --teal:#0f766e;
+    --ink:#241f14;
+    --ink-dim:#7a7362;
+    --line:rgba(168,130,47,0.22);
+  }
+  html{transition:background .4s ease;}
+  body, .stage, .hub-card, .gate-card, #nameInput, .decor-card, .pass-input-row input, .gen-result-row{
+    transition:background .4s ease, background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
@@ -33,6 +57,12 @@
     font-family:'Tajawal', sans-serif;
     min-height:100vh;
     overflow-x:hidden;
+  }
+  [data-theme="light"] body{
+    background:
+      radial-gradient(1200px 700px at 85% -10%, rgba(15,118,110,0.08), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(184,137,47,0.10), transparent 55%),
+      var(--bg-0);
   }
   .wrap{max-width:640px; margin:0 auto; padding:28px 18px 60px;}
 
@@ -57,7 +87,7 @@
     animation:shine 5.5s linear infinite;
     position:relative;
     display:inline-block;
-  }
+}
   @keyframes shine{
     0%{background-position:200% 0;}
     100%{background-position:-50% 0;}
@@ -140,6 +170,7 @@
     content:''; position:absolute; top:0; bottom:0; left:50%;
     width:2px; background:rgba(255,255,255,0.85); transform:translateX(-50%);
   }
+
   .handle-knob{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     width:34px; height:34px; border-radius:50%;
@@ -152,6 +183,7 @@
   .badge-processing{
     position:absolute; inset:0; z-index:5;
     display:none;
+    flex-direction:column; gap:12px;
     align-items:center; justify-content:center;
     background:rgba(7,10,16,0.55);
     backdrop-filter:blur(2px);
@@ -159,6 +191,13 @@
     letter-spacing:.5px;
   }
   .badge-processing.show{display:flex;}
+  .spinner-ring{
+    width:34px; height:34px; border-radius:50%;
+    border:3px solid rgba(232,200,116,0.25);
+    border-top-color:var(--gold-1);
+    animation:spinnerRingSpin .8s linear infinite;
+  }
+  @keyframes spinnerRingSpin{ to{ transform:rotate(360deg); } }
 
   /* Actions */
   .actions{
@@ -212,20 +251,717 @@
   footer{text-align:center; margin-top:34px; color:var(--ink-dim); font-size:12px;}
   footer .seal2{color:var(--gold-1); font-weight:600;}
 
+  .greeting{
+    text-align:center; color:var(--ink-dim); font-size:13px;
+    margin:-8px 0 18px; display:none;
+  }
+  .greeting.show{display:block;}
+  .greeting b{color:var(--gold-1); font-family:'Cairo',sans-serif;}
+
+  /* Hub */
+  .hub{display:flex; flex-direction:column; gap:12px;}
+  .hub.hidden{display:none;}
+  .hub-intro{
+    text-align:center; color:var(--ink-dim); font-size:13px;
+    font-family:'Cairo',sans-serif; font-weight:600; margin-bottom:4px;
+  }
+  .hub-card{
+    position:relative;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    text-align:center;
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    padding:30px 20px 26px;
+    cursor:pointer;
+    overflow:hidden;
+    box-shadow:0 20px 45px -25px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+    transition:transform .18s ease, border-color .25s ease, box-shadow .25s ease;
+    font-family:inherit; color:inherit;
+  }
+  .hub-card::before{
+    content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:70%; height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold-1), transparent);
+    opacity:0.5;
+  }
+  .hub-card::after{
+    content:''; position:absolute; top:-40%; left:50%; transform:translateX(-50%);
+    width:60%; height:80px;
+    background:radial-gradient(ellipse at center, rgba(232,200,116,0.16), transparent 70%);
+    pointer-events:none;
+  }
+  .hub-card:active{
+    transform:scale(0.97);
+    border-color:rgba(232,200,116,0.5);
+    box-shadow:0 14px 30px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,200,116,0.15) inset;
+  }
+  .hub-icon{
+    width:52px; height:52px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, rgba(232,200,116,0.14), rgba(232,200,116,0.03));
+    border:1px solid rgba(232,200,116,0.22);
+    margin-bottom:4px;
+  }
+  .hub-icon svg{width:26px; height:26px;}
+  .hub-title{font-family:'Cairo',sans-serif; font-weight:700; font-size:18px;}
+  .hub-sub{color:var(--ink-dim); font-size:13px;}
+
+  /* Stage sections (image tool / text tool) hidden until chosen from hub */
+  .stage{display:none;}
+  .stage.show{display:block;}
+  .back-btn{
+    font-family:'Cairo', sans-serif; font-weight:700; font-size:13px;
+    background:none; border:1px solid var(--line); color:var(--ink-dim);
+    padding:8px 14px; border-radius:999px; cursor:pointer; margin-bottom:14px;
+  }
+  .back-btn:active{border-color:var(--gold-1); color:var(--gold-1);}
+
+  /* Text decorator */
+  #textInput, #wheelNames{
+    width:100%; box-sizing:border-box; resize:none;
+    padding:14px 16px; border-radius:14px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.03);
+    color:var(--ink); font-family:'Tajawal',sans-serif; font-size:15px;
+    outline:none; transition:border-color .2s;
+}
+  #textInput:focus, #wheelNames:focus{border-color:var(--gold-1);}
+  #textInput::placeholder, #wheelNames::placeholder{color:var(--ink-dim);}
+  .decor-hint{
+    text-align:center; color:var(--ink-dim); font-size:13px; padding:22px 10px;
+  }
+  .decor-list{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
+  .decor-card{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px;
+    background:rgba(255,255,255,0.02);
+  }
+  .decor-body{flex:1; min-width:0;}
+  .decor-label{font-family:'Cairo',sans-serif; font-weight:600; font-size:10.5px; color:var(--gold-1); margin-bottom:3px;}
+  .decor-text{font-size:15px; word-break:break-word; line-height:1.5;}
+  .decor-copy{
+    flex-shrink:0; width:34px; height:34px; border-radius:9px;
+    border:1px solid var(--line); background:rgba(255,255,255,0.03); color:var(--ink);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:border-color .2s, color .2s, background .2s;
+  }
+  .decor-copy svg{width:15px; height:15px;}
+  .decor-copy.copied{border-color:var(--gold-1); color:var(--gold-1); background:rgba(232,200,116,0.08);}
+
+  /* Password tool */
+  .pass-section-label{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:14px;
+    color:var(--gold-1); margin-bottom:10px;
+  }
+  .pass-input-row input{
+    width:100%; box-sizing:border-box;
+    padding:14px 16px; border-radius:12px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.03);
+    color:var(--ink); font-family:'Tajawal',sans-serif; font-size:15px;
+    outline:none; direction:ltr; text-align:left;
+  }
+  .pass-input-row input:focus{border-color:var(--gold-1);}
+  .strength-bar{
+    height:6px; border-radius:999px; background:rgba(255,255,255,0.06);
+    margin-top:12px; overflow:hidden;
+  }
+  .strength-fill{height:100%; width:0%; border-radius:999px; background:#e0918f; transition:width .3s ease, background .3s ease;}
+  .strength-label{font-family:'Cairo',sans-serif; font-weight:600; font-size:12.5px; color:var(--ink-dim); margin-top:8px;}
+  .strength-checks{list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .strength-checks li{font-size:12.5px; color:var(--ink-dim); display:flex; align-items:center; gap:8px;}
+  .strength-checks li.ok{color:#7fd9a0;}
+  .strength-checks li .dot{width:6px; height:6px; border-radius:50%; background:currentColor; flex-shrink:0;}
+  .pass-divider{height:1px; background:var(--line); margin:26px 0 22px;}
+  .gen-row{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .gen-len-label{font-family:'Cairo',sans-serif; font-size:13px; color:var(--ink-dim);}
+  .gen-len-label b{color:var(--gold-1);}
+  #genLen{flex:1; accent-color:#e8c874;}
+  .gen-options{display:flex; flex-direction:column; gap:10px; margin-bottom:18px;}
+  .gen-toggle{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--ink);}
+  .gen-toggle input{width:17px; height:17px; accent-color:#e8c874;}
+  .gen-result-row{
+    display:flex; align-items:center; gap:10px; margin-top:14px;
+    border:1px solid var(--line); border-radius:12px; padding:12px;
+    background:rgba(255,255,255,0.02);
+  }
+  .gen-result{flex:1; font-family:'Tajawal',monospace; font-size:16px; direction:ltr; text-align:left; word-break:break-all; letter-spacing:0.5px;}
+
+  /* Lucky Wheel */
+  #btnSpin{margin-top:14px;}
+  .wheel-wrap{
+    position:relative; width:100%; max-width:280px;
+    margin:36px auto 8px; display:flex; justify-content:center;
+  }
+  .wheel-wrap::before{
+    content:''; position:absolute; inset:-18px; border-radius:50%; z-index:0;
+    background:radial-gradient(circle, rgba(232,200,116,0.35), rgba(232,200,116,0) 72%);
+    filter:blur(8px);
+    animation:wheelGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes wheelGlow{0%,100%{opacity:0.55; transform:scale(1);}50%{opacity:1; transform:scale(1.04);}}
+  .wheel-pointer{
+    position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    width:26px; height:32px; z-index:6;
+    background:linear-gradient(160deg,#fff8e6 0%, var(--gold-1) 45%, var(--gold-2) 100%);
+    clip-path:polygon(50% 100%, 4% 0%, 96% 0%);
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 10px rgba(232,200,116,0.55));
+  }
+  #wheelCanvas{
+    position:relative; z-index:2;
+    width:100%; height:auto; display:block;
+    filter:drop-shadow(0 14px 30px rgba(0,0,0,0.5));
+    transition:transform 5.6s cubic-bezier(0.11,0.68,0.14,1);
+  }
+  .wheel-hub{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:44px; height:44px; border-radius:50%; z-index:4;
+    background:radial-gradient(circle at 35% 28%, #fff8e6, var(--gold-1) 45%, var(--gold-2) 100%);
+    box-shadow:0 4px 10px rgba(0,0,0,0.55), inset 0 -4px 7px rgba(0,0,0,0.3), 0 0 18px rgba(232,200,116,0.55);
+    border:2px solid rgba(255,255,255,0.4);
+  }
+  .wheel-confetti{position:absolute; left:0; right:0; top:-10px; height:0; z-index:7; pointer-events:none;}
+  .wheel-confetti span{
+    position:absolute; top:0; width:6px; height:11px; border-radius:2px; opacity:0.95;
+    animation:confettiFall 1.5s ease-in forwards;
+  }
+  @keyframes confettiFall{
+    0%{transform:translateY(0) rotate(0deg); opacity:1;}
+    100%{transform:translateY(240px) rotate(420deg); opacity:0;}
+  }
+  .wheel-result{
+    text-align:center; margin-top:22px; min-height:34px;
+    font-family:'Cairo',sans-serif; font-weight:900; font-size:22px;
+    color:var(--gold-1);
+    text-shadow:0 0 18px rgba(232,200,116,0.4);
+  }
+  .wheel-result.show{animation:winPulse .5s ease;}
+  @keyframes winPulse{
+    0%{transform:scale(0.6); opacity:0;}
+    65%{transform:scale(1.12);}
+    100%{transform:scale(1); opacity:1;}
+  }
+
+  #nameGate{
+    position:fixed; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(1200px 700px at 85% -10%, rgba(18,112,106,0.20), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(232,200,116,0.12), transparent 55%),
+      var(--bg-0);
+    transition:opacity .35s ease, visibility .35s ease;
+  }
+  [data-theme="light"] #nameGate{
+    background:
+      radial-gradient(1200px 700px at 85% -10%, rgba(15,118,110,0.08), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(184,137,47,0.10), transparent 55%),
+      var(--bg-0);
+  }
+  #nameGate.hide{opacity:0; visibility:hidden; pointer-events:none;}
+  .gate-card{
+    width:100%; max-width:360px;
+    position:relative;
+    animation:gateIn .5s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes gateIn{
+    from{opacity:0; transform:translateY(14px) scale(.97);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .gate-badge{
+    width:64px; height:64px; margin:0 auto 18px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, rgba(232,200,116,0.18), rgba(232,200,116,0.03));
+    border:1px solid rgba(232,200,116,0.3);
+    position:relative;
+  }
+  .gate-badge::after{
+    content:''; position:absolute; inset:-6px; border-radius:50%;
+    border:1px solid rgba(232,200,116,0.15);
+  }
+  .gate-badge svg{width:30px; height:30px;}
+  .gate-card-inner{
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    padding:32px 24px;
+    text-align:center;
+    box-shadow:0 30px 60px -25px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .gate-card h2{
+    font-family:'Cairo', sans-serif; font-weight:900; font-size:34px; margin:0 0 6px;
+    background:linear-gradient(100deg, #fff 10%, var(--gold-1) 45%, #8a6a22 60%, var(--gold-1) 75%, #fff 95%);
+    background-size:250% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:shine 5.5s linear infinite;
+  }
+  .gate-card p{color:var(--ink-dim); font-size:14px; margin:0 0 22px;}
+  .gate-input-wrap{position:relative; margin-bottom:14px;}
+  .gate-input-icon{
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    width:17px; height:17px; color:var(--ink-dim); pointer-events:none;
+  }
+  #nameInput{
+    width:100%; box-sizing:border-box;
+    padding:14px 44px 14px 16px; border-radius:12px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.03);
+    color:var(--ink); font-family:'Tajawal',sans-serif; font-size:15px;
+    text-align:right;
+    outline:none;
+    transition:border-color .2s;
+  }
+  #nameInput:focus{border-color:var(--gold-1);}
+  #nameInput::placeholder{color:var(--ink-dim);}
+  #btnEnter{
+    width:100%; font-family:'Cairo', sans-serif; font-weight:700; font-size:15px;
+    padding:14px; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(135deg, var(--gold-1), var(--gold-2));
+    color:#1a1305;
+    transition:transform .15s, opacity .2s;
+  }
+  #btnEnter:active{transform:scale(0.98);}
+  #btnEnter:disabled{opacity:0.4; pointer-events:none;}
+  .gate-tos{
+    display:flex; align-items:flex-start; gap:8px;
+    text-align:right; margin-bottom:16px;
+    font-size:12.5px; line-height:1.6; color:var(--ink-dim);
+    cursor:pointer;
+  }
+  .gate-tos input{
+    width:16px; height:16px; margin-top:2px; flex-shrink:0;
+    accent-color:#e8c874; cursor:pointer;
+  }
+  .gate-tos a{color:var(--gold-1); text-decoration:underline;}
+  .gate-error{
+    color:#e0918f; font-size:12.5px; margin-top:10px; min-height:16px;
+    font-family:'Tajawal',sans-serif;
+  }
+
   @media (prefers-reduced-motion: reduce){
     h1.brand{animation:none; background-position:0 0;}
+    .gate-card h2{animation:none; background-position:0 0;}
   }
+
+  /* ===== Weather tool ===== */
+  #weatherTool{padding:0; overflow:hidden; position:relative;}
+  #weatherTool .back-btn{margin:16px 16px 0; position:relative; z-index:5; border-color:rgba(255,255,255,0.3); color:rgba(255,255,255,0.85);}
+  .weather-bg{
+    position:absolute; inset:0; z-index:0; overflow:hidden;
+    background:linear-gradient(160deg,#2b5876,#4e4376);
+    transition:background 1s ease;
+  }
+  .weather-content{position:relative; z-index:2; padding:14px 16px 22px; color:#fff;}
+  [data-wx="clear-day"] .weather-bg{background:linear-gradient(160deg,#4fa3e3,#8fd3f4);}
+  [data-wx="clear-night"] .weather-bg{background:linear-gradient(160deg,#0b1026,#1b2a52);}
+  [data-wx="cloudy-day"] .weather-bg{background:linear-gradient(160deg,#7d8ba1,#aab5c4);}
+  [data-wx="cloudy-night"] .weather-bg{background:linear-gradient(160deg,#232a3d,#3a4256);}
+  [data-wx="rain-day"] .weather-bg{background:linear-gradient(160deg,#374b5c,#5c7a8f);}
+  [data-wx="rain-night"] .weather-bg{background:linear-gradient(160deg,#131b28,#243447);}
+  [data-wx="storm"] .weather-bg{background:linear-gradient(160deg,#0e1116,#232b38);}
+  [data-wx="snow-day"] .weather-bg{background:linear-gradient(160deg,#93a5c4,#e4ecf5);}
+  [data-wx="snow-night"] .weather-bg{background:linear-gradient(160deg,#1c2436,#3d4a63);}
+  [data-wx="fog"] .weather-bg{background:linear-gradient(160deg,#7d848d,#b7bcc3);}
+
+  /* Sun */
+  .wx-sun{
+    position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+    width:180px; height:180px; border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(255,236,166,0.95), rgba(255,236,166,0) 70%);
+    opacity:0; transition:opacity .8s ease;
+  }
+  [data-wx="clear-day"] .wx-sun{opacity:1; animation:sunPulse 6s ease-in-out infinite;}
+  @keyframes sunPulse{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.08);}}
+
+  /* Moon + stars */
+  .wx-moon{
+    position:absolute; top:22px; left:26px;
+    width:46px; height:46px; border-radius:50%;
+    background:#f4f1de; box-shadow:inset -12px -4px 0 0 #232a3d;
+    opacity:0; transition:opacity .8s ease;
+  }
+  [data-wx="clear-night"] .wx-moon, [data-wx="cloudy-night"] .wx-moon, [data-wx="rain-night"] .wx-moon, [data-wx="snow-night"] .wx-moon{opacity:1;}
+  .wx-stars{position:absolute; inset:0; opacity:0; transition:opacity .8s ease;}
+  [data-wx="clear-night"] .wx-stars{opacity:1;}
+  .wx-star{position:absolute; width:2.5px; height:2.5px; background:#fff; border-radius:50%; animation:twinkle 2.6s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:0.25;}50%{opacity:1;}}
+
+  /* Clouds */
+  .wx-clouds{position:absolute; inset:0; opacity:0; transition:opacity .8s ease;}
+  [data-wx="cloudy-day"] .wx-clouds, [data-wx="cloudy-night"] .wx-clouds,
+  [data-wx="rain-day"] .wx-clouds, [data-wx="rain-night"] .wx-clouds,
+  [data-wx="storm"] .wx-clouds, [data-wx="snow-day"] .wx-clouds, [data-wx="snow-night"] .wx-clouds{opacity:1;}
+  .wx-cloud{
+    position:absolute; border-radius:50px;
+    background:rgba(255,255,255,0.55);
+    filter:blur(1px);
+    animation:cloudDrift linear infinite;
+  }
+  [data-wx="cloudy-night"] .wx-cloud, [data-wx="rain-night"] .wx-cloud, [data-wx="snow-night"] .wx-cloud, [data-wx="storm"] .wx-cloud{background:rgba(210,215,230,0.28);}
+  @keyframes cloudDrift{from{transform:translateX(-120%);}to{transform:translateX(220%);}}
+
+  /* Rain */
+  .wx-rain{position:absolute; inset:0; opacity:0; transition:opacity .5s ease;}
+  [data-wx="rain-day"] .wx-rain, [data-wx="rain-night"] .wx-rain, [data-wx="storm"] .wx-rain{opacity:1;}
+  .wx-drop{
+    position:absolute; top:-20px; width:2px; height:16px; border-radius:2px;
+    background:linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.65));
+    animation:dropFall linear infinite;
+  }
+  @keyframes dropFall{to{transform:translateY(340px);}}
+
+  /* Snow */
+  .wx-snow{position:absolute; inset:0; opacity:0; transition:opacity .5s ease;}
+  [data-wx="snow-day"] .wx-snow, [data-wx="snow-night"] .wx-snow{opacity:1;}
+  .wx-flake{
+    position:absolute; top:-10px; color:#fff; font-size:10px;
+    animation:flakeFall linear infinite;
+  }
+  @keyframes flakeFall{to{transform:translateY(340px) translateX(14px);}}
+
+  /* Storm flash */
+  .wx-flash{position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none;}
+  [data-wx="storm"] .wx-flash{animation:lightning 6.5s ease-in-out infinite;}
+  @keyframes lightning{0%,96%,100%{opacity:0;} 96.5%{opacity:0.55;} 97%{opacity:0;} 97.5%{opacity:0.35;} 98%{opacity:0;}}
+
+  /* Fog */
+  .wx-fog{position:absolute; inset:0; opacity:0; transition:opacity .5s ease;}
+  [data-wx="fog"] .wx-fog{opacity:1;}
+  .wx-fog-band{position:absolute; left:-20%; width:140%; height:34px; background:rgba(255,255,255,0.35); filter:blur(6px); animation:fogDrift linear infinite;}
+  @keyframes fogDrift{from{transform:translateX(-8%);}to{transform:translateX(8%);}}
+
+  /* Search row */
+  .wx-search-row{display:flex; gap:8px; margin-bottom:14px;}
+  .wx-search-row input{
+    flex:1; min-width:0; box-sizing:border-box;
+    padding:12px 14px; border-radius:12px;
+    border:1px solid rgba(255,255,255,0.28);
+    background:rgba(255,255,255,0.1);
+    color:#fff; font-family:'Tajawal',sans-serif; font-size:14px;
+    outline:none;
+  }
+  .wx-search-row input::placeholder{color:rgba(255,255,255,0.65);}
+  .wx-icon-btn{
+    flex-shrink:0; width:44px; height:44px; border-radius:12px;
+    border:1px solid rgba(255,255,255,0.28); background:rgba(255,255,255,0.1);
+    color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+  .wx-icon-btn svg{width:19px; height:19px;}
+  .wx-icon-btn:active{transform:scale(0.94);}
+  .wx-suggest{
+    display:flex; flex-direction:column; gap:6px; margin:-6px 0 14px;
+  }
+  .wx-suggest button{
+    text-align:right; font-family:'Tajawal',sans-serif; font-size:13.5px;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16);
+    color:#fff; border-radius:10px; padding:9px 12px; cursor:pointer;
+  }
+  .wx-status{
+    text-align:center; font-size:13px; color:rgba(255,255,255,0.75);
+    padding:26px 10px;
+  }
+  .wx-status.hide{display:none;}
+
+  .wx-current{display:none; text-align:center; padding:6px 0 4px;}
+  .wx-current.show{display:block;}
+  .wx-place{font-family:'Cairo',sans-serif; font-weight:700; font-size:16px;}
+  .wx-updated{font-size:11.5px; color:rgba(255,255,255,0.65); margin-top:2px;}
+  .wx-emoji{font-size:64px; line-height:1; margin:10px 0 0; filter:drop-shadow(0 6px 14px rgba(0,0,0,0.25));}
+  .wx-temp{font-family:'Cairo',sans-serif; font-weight:900; font-size:58px; line-height:1; margin-top:2px;}
+  .wx-desc{font-family:'Cairo',sans-serif; font-weight:600; font-size:15px; margin-top:4px;}
+  .wx-feels{font-size:13px; color:rgba(255,255,255,0.75); margin-top:4px;}
+
+  .wx-grid{
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+    margin:18px 0 4px;
+  }
+  .wx-grid-item{
+    border-radius:12px; border:1px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.08);
+    padding:10px 8px; text-align:center;
+  }
+  .wx-grid-label{font-size:10.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;}
+  .wx-grid-value{font-family:'Cairo',sans-serif; font-weight:700; font-size:14px;}
+
+  .wx-sm-card{
+    border-radius:16px; border:1px solid rgba(255,255,255,0.16);
+    background:rgba(255,255,255,0.06);
+    padding:16px 14px 14px; margin:14px 0 4px;
+  }
+  .wx-sm-title{font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; color:rgba(255,255,255,0.9); margin-bottom:10px;}
+  .wx-sm-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .wx-sm-col{text-align:center; padding:4px 2px;}
+  .wx-sm-col + .wx-sm-col{border-right:1px solid rgba(255,255,255,0.14);}
+  .wx-sm-label{font-size:11px; color:rgba(255,255,255,0.6);}
+  .wx-sm-value{font-family:'Cairo',sans-serif; font-weight:700; font-size:14.5px; margin-top:2px;}
+  .wx-sm-arc-wrap{position:relative; width:100%; max-width:150px; margin:6px auto -6px;}
+  .wx-sm-arc-svg{width:100%; display:block; overflow:visible;}
+  .wx-sm-arc-track{fill:none; stroke:rgba(255,255,255,0.14); stroke-width:5; stroke-linecap:round;}
+  .wx-sm-arc-fill{fill:none; stroke:#e8c874; stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset .6s ease;}
+  .wx-sm-arc-fill.sun{stroke:#ffb648;}
+  .wx-sm-arc-dot{fill:#fff8e6; stroke:#e8c874; stroke-width:2; filter:drop-shadow(0 0 5px rgba(232,200,116,0.7));}
+  .wx-sm-arc-dot.sun{stroke:#ffb648;}
+  .wx-sm-remain{font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; color:rgba(255,255,255,0.85); direction:rtl; margin-top:2px;}
+  .wx-sm-times{display:flex; justify-content:space-between; gap:6px; margin-top:10px; font-size:11px;}
+  .wx-sm-times div{flex:1;}
+  .wx-sm-times span{display:block; color:rgba(255,255,255,0.55); margin-bottom:2px;}
+  .wx-sm-times b{font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; direction:ltr; display:block;}
+  .wx-sm-moon-icon{width:20px; height:20px; border-radius:50%; margin:2px auto 0; position:relative; overflow:hidden; background:#2a2f3d; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2);}
+  .wx-sm-moon-icon span{position:absolute; top:0; bottom:0; background:#e8c874; border-radius:50%;}
+  .wx-sm-attrib{font-size:9.5px; color:rgba(255,255,255,0.4); text-align:center; margin-top:12px;}
+  .wx-sm-attrib a{color:rgba(255,255,255,0.55);}
+
+  .wx-section-label{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:13px;
+    color:rgba(255,255,255,0.85); margin:20px 0 10px;
+  }
+  .wx-hourly{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
+  .wx-hourly::-webkit-scrollbar{height:0;}
+  .wx-hour{
+    flex-shrink:0; width:56px; text-align:center;
+    border-radius:12px; border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.06); padding:10px 4px;
+  }
+  .wx-hour-time{font-size:11px; color:rgba(255,255,255,0.7);}
+  .wx-hour-emoji{font-size:20px; margin:6px 0;}
+  .wx-hour-temp{font-family:'Cairo',sans-serif; font-weight:700; font-size:13px;}
+
+  .wx-daily{display:flex; flex-direction:column; gap:6px;}
+  .wx-day{
+    display:flex; align-items:center; gap:10px;
+    border-radius:12px; border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.06); padding:10px 12px;
+  }
+  .wx-day-name{width:64px; font-family:'Cairo',sans-serif; font-weight:600; font-size:13px;}
+  .wx-day-emoji{font-size:18px; width:26px; text-align:center;}
+  .wx-day-bar{flex:1; height:5px; border-radius:999px; background:rgba(255,255,255,0.15); position:relative; overflow:hidden;}
+  .wx-day-bar span{position:absolute; top:0; bottom:0; border-radius:999px; background:linear-gradient(90deg,#ffd76a,#ff9f6a);}
+  .wx-day-range{width:78px; text-align:left; font-size:12.5px; direction:ltr; color:rgba(255,255,255,0.85); flex-shrink:0;}
+  .wx-day{cursor:pointer; transition:border-color .2s;}
+  .wx-day.open{border-color:rgba(255,255,255,0.4);}
+  .wx-day-chevron{width:14px; text-align:center; font-size:11px; color:rgba(255,255,255,0.6); transition:transform .25s ease; flex-shrink:0;}
+  .wx-day.open .wx-day-chevron{transform:rotate(180deg);}
+  .wx-day-detail{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+  .wx-day-detail.open{max-height:900px;}
+  .wx-day-detail-inner{display:flex; flex-direction:column; gap:8px; padding:8px 2px 12px;}
+  .wx-daypart{
+    border-radius:12px; border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.07); padding:12px 13px;
+  }
+  .wx-daypart-title{font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; margin-bottom:6px;}
+  .wx-daypart-summary{font-size:12.5px; color:rgba(255,255,255,0.88); line-height:1.65; margin-bottom:10px;}
+  .wx-daypart-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .wx-daypart-item{
+    background:rgba(255,255,255,0.07); border-radius:8px;
+    padding:6px 9px; font-size:12px; display:flex; align-items:center; justify-content:space-between; gap:6px;
+  }
+  .wx-daypart-item span:first-child{color:rgba(255,255,255,0.75);}
+  .wx-daypart-item span:last-child{font-family:'Cairo',sans-serif; font-weight:700;}
+
+  .wx-refresh-row{display:flex; align-items:center; justify-content:space-between; margin-top:20px;}
+  .wx-refresh-btn{
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22);
+    color:#fff; border-radius:999px; padding:8px 14px; cursor:pointer;
+  }
+  .wx-refresh-btn:active{transform:scale(0.96);}
+  .wx-refresh-btn.spinning svg{animation:spin 0.8s linear infinite;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
+<div id="nameGate">
+  <div class="gate-card">
+    <div class="gate-card-inner">
+      <div class="gate-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.5">
+          <path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9L12 3z" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>Luma</h2>
+      <p>قبل ما تبدأ، اكتب اسمك كامل (الاسم الأول والتاني والتالت)</p>
+      <div class="gate-input-wrap">
+        <svg class="gate-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.6 4-5.4 7-5.4s5.8 1.8 7 5.4" stroke-linecap="round"/></svg>
+        <input type="text" id="nameInput" placeholder="مثال: محمد أحمد علي" maxlength="60" autocomplete="name">
+      </div>
+      <label class="gate-tos">
+        <input type="checkbox" id="tosCheck">
+        <span>أوافق على <a href="#" onclick="return false;">شروط الخدمة</a> و<a href="#" onclick="return false;">سياسة الخصوصية</a></span>
+      </label>
+      <button id="btnEnter">دخول</button>
+      <div class="gate-error" id="gateError"></div>
+    </div>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <div class="seal"><span class="dot"></span> معالجة فورية داخل جهازك — بدون رفع لأي سيرفر</div>
     <h1 class="brand">Luma</h1>
     <p class="tagline">صورتك… بلمسة توضيح، أو بلمسة فن</p>
+    <p class="greeting" id="greeting"></p>
   </header>
 
-  <div class="stage">
+  <div class="hub" id="hub">
+    <div class="hub-intro">اختار الأداة اللي عايزها:</div>
+    <button type="button" class="hub-card" id="hubWeather">
+      <div class="hub-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.4">
+          <circle cx="9" cy="8" r="3.2"/>
+          <path d="M4.5 18.5a4 4 0 014-4.5h7.2a3.8 3.8 0 10-1-7.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 21v.01M13 21v.01M17 19.5v.01" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="hub-title">الطقس</div>
+      <div class="hub-sub">حالة الطقس الحالية والتوقعات لأي مدينة</div>
+    </button>
+    <button type="button" class="hub-card" id="hubImage">
+      <div class="hub-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.4">
+          <rect x="3" y="4" width="18" height="16" rx="2.5"/>
+          <circle cx="8.5" cy="9.5" r="1.6"/>
+          <path d="M21 15.5l-5.5-5.5-4 4-2.5-2.5L3 16" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="hub-title">تحسين الصور</div>
+      <div class="hub-sub">وضوح، أبيض وأسود، ومقارنة قبل/بعد</div>
+    </button>
+    <button type="button" class="hub-card" id="hubText">
+      <div class="hub-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.4">
+          <path d="M12 4l1.7 4.3L18 10l-4.3 1.7L12 16l-1.7-4.3L6 10l4.3-1.7L12 4z" stroke-linejoin="round"/>
+          <path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="hub-title">زخرفة النصوص</div>
+      <div class="hub-sub">حوّل كتابتك لعشرات الأشكال والخطوط</div>
+    </button>
+    <button type="button" class="hub-card" id="hubPass">
+      <div class="hub-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.4">
+          <rect x="5" y="11" width="14" height="9" rx="2"/>
+          <path d="M8 11V7.5a4 4 0 018 0V11" stroke-linecap="round"/>
+          <circle cx="12" cy="15.2" r="1.3" fill="#e8c874" stroke="none"/>
+        </svg>
+      </div>
+      <div class="hub-title">قوة الباسورد</div>
+      <div class="hub-sub">افحص باسوردك أو ولّد باسورد قوي وآمن</div>
+    </button>
+    <button type="button" class="hub-card" id="hubWheel">
+      <div class="hub-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.4">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v9l6.3 3.6M12 12L5.7 15.6" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="1.6" fill="#e8c874" stroke="none"/>
+        </svg>
+      </div>
+      <div class="hub-title">عجلة الحظ</div>
+      <div class="hub-sub">اكتب أسامي أو خيارات ودور العجلة تختار واحد عشوائي</div>
+    </button>
+  </div>
+
+  <div class="stage" id="weatherTool" data-wx="clear-day">
+    <div class="weather-bg">
+      <div class="wx-flash"></div>
+      <div class="wx-sun"></div>
+      <div class="wx-moon"></div>
+      <div class="wx-stars" id="wxStars"></div>
+      <div class="wx-clouds" id="wxClouds"></div>
+      <div class="wx-rain" id="wxRain"></div>
+      <div class="wx-snow" id="wxSnow"></div>
+      <div class="wx-fog" id="wxFog"></div>
+    </div>
+    <button type="button" class="back-btn" id="backFromWeather">→ رجوع</button>
+    <div class="weather-content">
+      <div class="wx-search-row">
+        <input type="text" id="wxCityInput" placeholder="دور على مدينة…" autocomplete="off">
+        <button type="button" class="wx-icon-btn" id="wxSearchBtn" title="بحث">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="wx-icon-btn" id="wxLocateBtn" title="موقعي الحالي">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="wx-suggest" id="wxSuggest"></div>
+
+      <div class="wx-status" id="wxStatus">بيحدد موقعك عشان يجيبلك الطقس…</div>
+
+      <div class="wx-current" id="wxCurrent">
+        <div class="wx-place" id="wxPlace">—</div>
+        <div class="wx-updated" id="wxUpdated"></div>
+        <div class="wx-emoji" id="wxEmoji">—</div>
+        <div class="wx-temp" id="wxTemp">—</div>
+        <div class="wx-desc" id="wxDesc">—</div>
+        <div class="wx-feels" id="wxFeels"></div>
+
+        <div class="wx-grid">
+          <div class="wx-grid-item"><div class="wx-grid-label">الرطوبة</div><div class="wx-grid-value" id="wxHumidity">—</div></div>
+          <div class="wx-grid-item"><div class="wx-grid-label">الرياح</div><div class="wx-grid-value" id="wxWind">—</div></div>
+          <div class="wx-grid-item"><div class="wx-grid-label">الضغط الجوي</div><div class="wx-grid-value" id="wxPressure">—</div></div>
+          <div class="wx-grid-item"><div class="wx-grid-label">مؤشر UV</div><div class="wx-grid-value" id="wxUv">—</div></div>
+        </div>
+
+        <div class="wx-sm-card">
+          <div class="wx-sm-title">☀️ الشمس والقمر</div>
+          <div class="wx-sm-grid">
+            <div class="wx-sm-col">
+              <div class="wx-sm-label">طور القمر</div>
+              <div class="wx-sm-value" id="wxMoonPhase">—</div>
+              <div class="wx-sm-moon-icon" id="wxMoonIcon"><span></span></div>
+              <div class="wx-sm-arc-wrap">
+                <svg viewBox="0 0 140 78" class="wx-sm-arc-svg">
+                  <path d="M8,70 A62,62 0 0 1 132,70" class="wx-sm-arc-track"/>
+                  <path d="M8,70 A62,62 0 0 1 132,70" class="wx-sm-arc-fill" id="wxMoonArcFill"/>
+                  <circle r="5" class="wx-sm-arc-dot" id="wxMoonArcDot" cx="8" cy="70"/>
+                </svg>
+              </div>
+              <div class="wx-sm-remain" id="wxMoonRemain">—</div>
+              <div class="wx-sm-times">
+                <div><span>طلوع القمر</span><b id="wxMoonrise">—</b></div>
+                <div><span>أفول القمر</span><b id="wxMoonset">—</b></div>
+              </div>
+            </div>
+            <div class="wx-sm-col">
+              <div class="wx-sm-label">مؤشر UV</div>
+              <div class="wx-sm-value" id="wxUv2">—</div>
+              <div class="wx-sm-arc-wrap" style="margin-top:26px;">
+                <svg viewBox="0 0 140 78" class="wx-sm-arc-svg">
+                  <path d="M8,70 A62,62 0 0 1 132,70" class="wx-sm-arc-track"/>
+                  <path d="M8,70 A62,62 0 0 1 132,70" class="wx-sm-arc-fill sun" id="wxSunArcFill"/>
+                  <circle r="5" class="wx-sm-arc-dot sun" id="wxSunArcDot" cx="8" cy="70"/>
+                </svg>
+              </div>
+              <div class="wx-sm-remain" id="wxSunRemain">—</div>
+              <div class="wx-sm-times">
+                <div><span>الشروق</span><b id="wxSunriseTime">—</b></div>
+                <div><span>الغروب</span><b id="wxSunsetTime">—</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="wx-sm-attrib">بيانات القمر من <a href="https://sunrise-sunset.org" target="_blank" rel="noopener">sunrise-sunset.org</a></div>
+        </div>
+
+        <div class="wx-section-label">الساعات الجاية</div>
+        <div class="wx-hourly" id="wxHourly"></div>
+
+        <div class="wx-section-label">توقعات 7 أيام</div>
+        <div class="wx-daily" id="wxDaily"></div>
+
+        <div class="wx-refresh-row">
+          <span class="wx-updated" id="wxAutoNote">بيتحدث تلقائي كل 10 دقايق</span>
+          <button type="button" class="wx-refresh-btn" id="wxRefreshBtn">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-left:4px;"><path d="M21 12a9 9 0 10-2.6 6.4M21 4v6h-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            تحديث الآن
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage" id="imageTool">
+    <button type="button" class="back-btn" id="backFromImage">→ رجوع</button>
     <div id="dropzone">
       <svg viewBox="0 0 24 24" fill="none" stroke="#e8c874" stroke-width="1.4">
         <path d="M12 16V4M12 4L7 9M12 4l5 5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -242,7 +978,7 @@
         <div class="compare-badge badge-after" id="badgeAfter">بعد</div>
         <div class="compare-handle" id="compareHandle"><div class="handle-knob">↔</div></div>
       </div>
-      <div class="badge-processing" id="processingBadge">جاري المعالجة…</div>
+      <div class="badge-processing" id="processingBadge"><div class="spinner-ring"></div><span>جاري المعالجة…</span></div>
     </div>
     <input type="file" id="fileInput" accept="image/*">
     <div class="cam-toast" id="camToast"></div>
@@ -264,11 +1000,195 @@
     </div>
   </div>
 
+  <div class="stage" id="textTool">
+    <button type="button" class="back-btn" id="backFromText">→ رجوع</button>
+    <textarea id="textInput" placeholder="Type something in English…" maxlength="200" rows="2" dir="ltr"></textarea>
+    <div class="cam-toast" id="engToast"></div>
+    <div class="decor-hint" id="decorHint">اكتب حاجة فوق عشان تشوف الأشكال ✍️</div>
+    <div class="decor-list" id="decorList"></div>
+  </div>
+
+  <div class="stage" id="passTool">
+    <button type="button" class="back-btn" id="backFromPass">→ رجوع</button>
+
+    <div class="pass-section-label">افحص باسوردك</div>
+    <div class="pass-input-row">
+      <input type="text" id="passCheckInput" placeholder="اكتب باسوردك هنا" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+    <div class="strength-label" id="strengthLabel">اكتب باسورد عشان نقيّمه</div>
+    <ul class="strength-checks" id="strengthChecks"></ul>
+
+    <div class="pass-divider"></div>
+
+    <div class="pass-section-label">ولّد باسورد قوي</div>
+    <div class="gen-row">
+      <span class="gen-len-label">الطول: <b id="genLenVal">16</b></span>
+      <input type="range" id="genLen" min="8" max="32" value="16">
+    </div>
+    <div class="gen-options">
+      <label class="gen-toggle"><input type="checkbox" id="optUpper" checked> حروف كبيرة (A-Z)</label>
+      <label class="gen-toggle"><input type="checkbox" id="optLower" checked> حروف صغيرة (a-z)</label>
+      <label class="gen-toggle"><input type="checkbox" id="optNumbers" checked> أرقام (0-9)</label>
+      <label class="gen-toggle"><input type="checkbox" id="optSymbols" checked> رموز (!@#$…)</label>
+    </div>
+    <button type="button" class="btn-wide btn-download" id="btnGenerate">توليد باسورد</button>
+    <div class="gen-result-row" id="genResultRow" style="display:none;">
+      <div class="gen-result" id="genResult"></div>
+      <button type="button" class="decor-copy" id="btnCopyGen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="stage" id="wheelTool">
+    <button type="button" class="back-btn" id="backFromWheel">→ رجوع</button>
+    <div class="pass-section-label">اكتب الأسامي أو الخيارات (كل واحد في سطر)</div>
+    <textarea id="wheelNames" placeholder="أحمد&#10;سارة&#10;محمد" rows="4"></textarea>
+    <button type="button" class="btn-wide btn-download" id="btnSpin">دور العجلة</button>
+    <div class="wheel-wrap">
+      <div class="wheel-confetti" id="wheelConfetti"></div>
+      <div class="wheel-pointer"></div>
+      <canvas id="wheelCanvas" width="280" height="280"></canvas>
+      <div class="wheel-hub"></div>
+    </div>
+    <div class="wheel-result" id="wheelResult"></div>
+  </div>
+
   <footer>
     صُنع بعناية داخل متصفحك <span class="seal2">✦ Luma</span>
   </footer>
 </div>
 
+<script>
+(function(){
+  // Keep the theme in sync with the real clock while the page stays open —
+  // switches automatically the moment the hour crosses 6am/6pm, no reload needed.
+  function themeForNow(){
+    const h = new Date().getHours();
+    return (h >= 6 && h < 18) ? 'light' : 'dark';
+  }
+  function applyTheme(){
+    const t = themeForNow();
+    if(document.documentElement.getAttribute('data-theme') !== t){
+      document.documentElement.setAttribute('data-theme', t);
+    }
+  }
+  applyTheme();
+  setInterval(applyTheme, 60000);
+})();
+</script>
+
+<script>
+(function(){
+  // Name gate: ask for a first name before the site is usable, remember it
+  // afterwards so returning visitors aren't asked again.
+  const nameGate = document.getElementById('nameGate');
+  const nameInput = document.getElementById('nameInput');
+  const tosCheck = document.getElementById('tosCheck');
+  const btnEnter = document.getElementById('btnEnter');
+  const gateError = document.getElementById('gateError');
+  const greeting = document.getElementById('greeting');
+
+  function showGreeting(fullName){
+    const firstName = fullName.trim().split(/\s+/)[0];
+    greeting.innerHTML = 'أهلاً يا <b>' + firstName + '</b> 👋';
+    greeting.classList.add('show');
+  }
+
+  function tryEnter(){
+    const name = nameInput.value.trim();
+    const parts = name.split(/\s+/).filter(Boolean);
+    if(!name){
+      gateError.textContent = 'اكتب اسمك كامل 🙂';
+      nameInput.focus();
+      return;
+    }
+    if(parts.length < 3){
+      gateError.textContent = 'لازم تكتب الاسم كامل (3 أسماء على الأقل)';
+      nameInput.focus();
+      return;
+    }
+    if(!tosCheck.checked){
+      gateError.textContent = 'لازم توافق على شروط الخدمة وسياسة الخصوصية الأول';
+      return;
+    }
+    localStorage.setItem('luma_name', name);
+    showGreeting(name);
+    nameGate.classList.add('hide');
+  }
+
+  btnEnter.addEventListener('click', tryEnter);
+  nameInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter') tryEnter();
+  });
+  nameInput.addEventListener('input', ()=>{ gateError.textContent=''; });
+  tosCheck.addEventListener('change', ()=>{ gateError.textContent=''; });
+
+  const savedName = localStorage.getItem('luma_name');
+  if(savedName){
+    showGreeting(savedName);
+    nameGate.classList.add('hide');
+  } else {
+    setTimeout(()=> nameInput.focus(), 300);
+  }
+})();
+</script>
+
+<script>
+(function(){
+  // Hub navigation between the two tools
+  const hub = document.getElementById('hub');
+  const imageTool = document.getElementById('imageTool');
+  const textTool = document.getElementById('textTool');
+  const passTool = document.getElementById('passTool');
+  const wheelTool = document.getElementById('wheelTool');
+  const weatherTool = document.getElementById('weatherTool');
+
+  document.getElementById('hubWeather').addEventListener('click', ()=>{
+    hub.classList.add('hidden');
+    weatherTool.classList.add('show');
+    if(typeof window.__wxOnOpen === 'function') window.__wxOnOpen();
+  });
+  document.getElementById('backFromWeather').addEventListener('click', ()=>{
+    weatherTool.classList.remove('show');
+    hub.classList.remove('hidden');
+    if(typeof window.__wxOnClose === 'function') window.__wxOnClose();
+  });
+  document.getElementById('hubImage').addEventListener('click', ()=>{
+    hub.classList.add('hidden');
+    imageTool.classList.add('show');
+  });
+  document.getElementById('hubText').addEventListener('click', ()=>{
+    hub.classList.add('hidden');
+    textTool.classList.add('show');
+  });
+  document.getElementById('hubPass').addEventListener('click', ()=>{
+    hub.classList.add('hidden');
+    passTool.classList.add('show');
+  });
+  document.getElementById('hubWheel').addEventListener('click', ()=>{
+    hub.classList.add('hidden');
+    wheelTool.classList.add('show');
+  });
+  document.getElementById('backFromImage').addEventListener('click', ()=>{
+    imageTool.classList.remove('show');
+    hub.classList.remove('hidden');
+  });
+  document.getElementById('backFromText').addEventListener('click', ()=>{
+    textTool.classList.remove('show');
+    hub.classList.remove('hidden');
+  });
+  document.getElementById('backFromPass').addEventListener('click', ()=>{
+    passTool.classList.remove('show');
+    hub.classList.remove('hidden');
+  });
+  document.getElementById('backFromWheel').addEventListener('click', ()=>{
+    wheelTool.classList.remove('show');
+    hub.classList.remove('hidden');
+  });
+})();
+</script>
 <script>
 (function(){
   const dropzone = document.getElementById('dropzone');
@@ -616,6 +1536,1072 @@
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
+})();
+</script>
+
+<script>
+(function(){
+  const textInput = document.getElementById('textInput');
+  const decorHint = document.getElementById('decorHint');
+  const decorList = document.getElementById('decorList');
+  const engToast = document.getElementById('engToast');
+
+  function buildAlphaMap(upperBase, lowerBase, digitBase, exceptions){
+    const map = {};
+    for(let i=0;i<26;i++){
+      map[String.fromCharCode(65+i)] = upperBase!=null ? String.fromCodePoint(upperBase+i) : String.fromCharCode(65+i);
+      map[String.fromCharCode(97+i)] = lowerBase!=null ? String.fromCodePoint(lowerBase+i) : String.fromCharCode(97+i);
+    }
+    if(digitBase!=null){
+      for(let i=0;i<10;i++){ map[String.fromCharCode(48+i)] = String.fromCodePoint(digitBase+i); }
+    }
+    if(exceptions) Object.assign(map, exceptions);
+    return map;
+  }
+  function applyMap(str, map){
+    return [...str].map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+  }
+
+  const MAPS = {
+    bold: buildAlphaMap(119808,119834,120782),
+    italic: buildAlphaMap(119860,119886,null,{h:'\u210E'}),
+    boldItalic: buildAlphaMap(119912,119938),
+    script: buildAlphaMap(119964,119990,null,{
+      B:'\u212C',E:'\u2130',F:'\u2131',H:'\u210B',I:'\u2110',L:'\u2112',M:'\u2133',R:'\u211B',
+      e:'\u212F',g:'\u210A',o:'\u2134'
+    }),
+    boldScript: buildAlphaMap(120016,120042),
+    fraktur: buildAlphaMap(120068,120094,null,{
+      C:'\u212D',H:'\u210C',I:'\u2111',R:'\u211C',Z:'\u2128'
+    }),
+    boldFraktur: buildAlphaMap(120172,120198),
+    doubleStruck: buildAlphaMap(120120,120146,120024,{
+      C:'\u2102',H:'\u210D',N:'\u2115',P:'\u2119',Q:'\u211A',R:'\u211D',Z:'\u2124'
+    }),
+    sans: buildAlphaMap(120224,120250,120802),
+    sansBold: buildAlphaMap(120276,120302,120812),
+    sansItalic: buildAlphaMap(120328,120354),
+    sansBoldItalic: buildAlphaMap(120380,120406),
+    mono: buildAlphaMap(120432,120458,120822),
+    fullwidth: buildAlphaMap(65313,65345,65296),
+    circled: buildAlphaMap(9398,9424,null,{'0':'\u24EA','1':'\u2460','2':'\u2461','3':'\u2462','4':'\u2463','5':'\u2464','6':'\u2465','7':'\u2466','8':'\u2467','9':'\u2468'}),
+    squared: (()=>{ const m=buildAlphaMap(127280,127280); return m; })(),
+    negSquared: (()=>{ const m=buildAlphaMap(127344,127344); return m; })(),
+    smallcaps: {a:'\u1D00',b:'\u0299',c:'\u1D04',d:'\u1D05',e:'\u1D07',f:'\uA730',g:'\u0262',h:'\u029C',i:'\u026A',j:'\u1D0A',k:'\u1D0B',l:'\u029F',m:'\u1D0D',n:'\u0274',o:'\u1D0F',p:'\u1D18',r:'\u0280',t:'\u1D1B',u:'\u1D1C',v:'\u1D20',w:'\u1D21',y:'\u028F',z:'\u1D22'}
+  };
+
+  const UPSIDE = {
+    a:'\u0250',b:'q',c:'\u0254',d:'p',e:'\u01DD',f:'\u025F',g:'\u0183',h:'\u0265',i:'\u0131',j:'\u027E',
+    k:'\u029E',l:'l',m:'\u026F',n:'u',o:'o',p:'d',q:'b',r:'\u0279',s:'s',t:'\u0287',u:'n',v:'\u028C',
+    w:'\u028D',x:'x',y:'\u028E',z:'z',
+    A:'\u2200',B:'B',C:'\u0186',D:'D',E:'\u018E',F:'\u2132',G:'\u2141',H:'H',I:'I',J:'\u017F',
+    K:'K',L:'\u02E5',M:'W',N:'N',O:'O',P:'\u0500',Q:'Q',R:'\u1D1A',S:'S',T:'\u22A5',
+    U:'\u2229',V:'\u039B',W:'M',X:'X',Y:'\u2144',Z:'Z',
+    '0':'0','1':'\u0196','2':'\u1105','3':'\u0190','4':'\u3123','5':'\u03DB','6':'9','7':'\u3125','8':'8','9':'6',
+    '.':'\u02D9',',':"'","'":',','?':'\u00BF','!':'\u00A1'
+  };
+  function upsideDown(str){
+    return [...str].reverse().map(ch => UPSIDE[ch] !== undefined ? UPSIDE[ch] : ch).join('');
+  }
+
+  const ZALGO_UP = ['\u0300','\u0301','\u0302','\u0303','\u0304','\u0305','\u0306','\u030A','\u030C','\u0310','\u0312'];
+  const ZALGO_DOWN = ['\u0316','\u0317','\u0318','\u0319','\u031C','\u0320','\u0323','\u0324','\u0325','\u0326'];
+  function zalgo(str, intensity){
+    return [...str].map(ch=>{
+      if(ch===' ') return ch;
+      let out = ch;
+      for(let i=0;i<intensity;i++){ out += ZALGO_UP[Math.floor(Math.random()*ZALGO_UP.length)]; }
+      for(let i=0;i<Math.max(1,Math.floor(intensity/2));i++){ out += ZALGO_DOWN[Math.floor(Math.random()*ZALGO_DOWN.length)]; }
+      return out;
+    }).join('');
+  }
+  function combining(str, mark){ return [...str].map(ch => ch===' ' ? ch : ch+mark).join(''); }
+  function wideSpace(str){ return [...str].join(' '); }
+  function reversed(str){ return [...str].reverse().join(''); }
+
+  // Base font-style transforms — each usable alone, and combined with borders below.
+  const FONT_STYLES = [
+    {label:'Bold', fn:t=>applyMap(t, MAPS.bold)},
+    {label:'Italic', fn:t=>applyMap(t, MAPS.italic)},
+    {label:'Bold Italic', fn:t=>applyMap(t, MAPS.boldItalic)},
+    {label:'Script', fn:t=>applyMap(t, MAPS.script)},
+    {label:'Bold Script', fn:t=>applyMap(t, MAPS.boldScript)},
+    {label:'Fraktur', fn:t=>applyMap(t, MAPS.fraktur)},
+    {label:'Bold Fraktur', fn:t=>applyMap(t, MAPS.boldFraktur)},
+    {label:'Double-Struck', fn:t=>applyMap(t, MAPS.doubleStruck)},
+    {label:'Sans', fn:t=>applyMap(t, MAPS.sans)},
+    {label:'Sans Bold', fn:t=>applyMap(t, MAPS.sansBold)},
+    {label:'Sans Italic', fn:t=>applyMap(t, MAPS.sansItalic)},
+    {label:'Sans Bold Italic', fn:t=>applyMap(t, MAPS.sansBoldItalic)},
+    {label:'Monospace', fn:t=>applyMap(t, MAPS.mono)},
+    {label:'Fullwidth', fn:t=>applyMap(t, MAPS.fullwidth)},
+    {label:'Circled', fn:t=>applyMap(t, MAPS.circled)},
+    {label:'Squared', fn:t=>applyMap(t.toUpperCase(), MAPS.squared)},
+    {label:'Negative Squared', fn:t=>applyMap(t.toUpperCase(), MAPS.negSquared)},
+    {label:'Small Caps', fn:t=>applyMap(t.toLowerCase(), MAPS.smallcaps)},
+    {label:'Upside Down', fn:t=>upsideDown(t)},
+  ];
+const UNIVERSAL_STYLES = [
+    {label:'Underline', fn:t=>combining(t,'\u0332')},
+    {label:'Double Underline', fn:t=>combining(t,'\u0333')},
+    {label:'Overline', fn:t=>combining(t,'\u0305')},
+    {label:'Strikethrough', fn:t=>combining(t,'\u0336')},
+    {label:'Dotted', fn:t=>combining(t,'\u0323')},
+    {label:'Light Glitch', fn:t=>zalgo(t,2)},
+    {label:'Heavy Glitch', fn:t=>zalgo(t,6)},
+    {label:'Wide Spacing', fn:t=>wideSpace(t)},
+    {label:'Reversed', fn:t=>reversed(t)},
+  ];
+
+  const BORDERS = [
+    ['\u2726 ',' \u2726'], ['\u2605 ',' \u2605'], ['\u300E','\u300F'], ['\u300C','\u300D'],
+    ['\u3010','\u3011'], ['\u226A ',' \u226B'], ['\u22B0 ',' \u22B1'], ['\u2661 ',' \u2661'],
+    ['\u2606\u5F61 ',' \u5F61\u2606'], ['\u2581\u2582\u2583 ',' \u2583\u2582\u2581'],
+    ['\uAA81 ',' \uAA82'], ['\u2022\u00B0\u2022 ',' \u2022\u00B0\u2022'],
+    ['\u21AD ',' \u21AD'], ['\u2756 ',' \u2756'], ['\u2307 ',' \u2307'], ['\u3014','\u3015'],
+    ['\u272F\u2605 ',' \u2605\u272F'], ['\u22C6\u207A\u208A ',' \u208A\u207A\u22C6'],
+    ['\u203F\uFE35\u203F ',' \u203F\uFE35\u203F'], ['[ ',' ]'],
+  ];
+
+  // A curated subset of styles worth pairing with every border, so we get
+  // real variety (200+ combos) without generating something for every font
+  // style x every border, which would be excessive to render live.
+  const COMBO_STYLES = ['Bold','Italic','Bold Italic','Script','Bold Script','Fraktur',
+    'Double-Struck','Sans Bold','Monospace','Upside Down'];
+
+  const STYLES = [];
+  FONT_STYLES.forEach(s => STYLES.push(s));
+  UNIVERSAL_STYLES.forEach(s => STYLES.push(s));
+  BORDERS.forEach((b,i)=> STYLES.push({label: b[0].trim()+' Border', fn:t=> b[0]+t+b[1]}));
+  FONT_STYLES.filter(s => COMBO_STYLES.includes(s.label)).forEach(style=>{
+    BORDERS.forEach(b=>{
+      STYLES.push({label: style.label+' + '+b[0].trim(), fn:t=> b[0]+style.fn(t)+b[1]});
+    });
+  });
+
+  function copyToClipboard(text, btn){
+    const done = ()=>{
+      btn.classList.add('copied');
+      setTimeout(()=> btn.classList.remove('copied'), 1200);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(()=> fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round"/></svg>';
+
+  function render(){
+    try{
+      const text = textInput.value;
+      if(!text.trim()){
+        decorHint.style.display = 'block';
+        decorHint.textContent = 'اكتب حاجة فوق عشان تشوف الأشكال ✍️';
+        decorList.innerHTML = '';
+        return;
+      }
+      decorHint.style.display = 'none';
+      const frag = document.createDocumentFragment();
+      STYLES.forEach(style=>{
+        let out;
+        try{ out = style.fn(text); }catch(e){ out = text; }
+        const card = document.createElement('div');
+        card.className = 'decor-card';
+        const body = document.createElement('div');
+        body.className = 'decor-body';
+        const label = document.createElement('div');
+        label.className = 'decor-label';
+        label.textContent = style.label;
+        const txt = document.createElement('div');
+        txt.className = 'decor-text';
+        txt.textContent = out;
+        body.appendChild(label); body.appendChild(txt);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'decor-copy';
+        btn.innerHTML = copyIcon;
+        btn.addEventListener('click', ()=> copyToClipboard(out, btn));
+        card.appendChild(body); card.appendChild(btn);
+        frag.appendChild(card);
+      });
+      decorList.innerHTML = '';
+      decorList.appendChild(frag);
+    }catch(err){
+      decorHint.style.display = 'block';
+      decorHint.textContent = 'حصل خطأ: ' + err.message;
+      decorList.innerHTML = '';
+    }
+  }
+
+  // English-only input: strip Arabic characters the moment they're typed,
+  // and show a friendly heads-up instead of silently swallowing them.
+  const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+  let toastTimer;
+  function showEngToast(){
+    engToast.textContent = 'إحنا إنجلش بس يعسل 😄';
+    engToast.className = 'cam-toast show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> engToast.classList.remove('show'), 2200);
+  }
+  function sanitizeInput(){
+    if(ARABIC_RE.test(textInput.value)){
+      textInput.value = textInput.value.replace(ARABIC_RE, '');
+      showEngToast();
+    }
+  }
+
+  let renderTimer;
+  function onType(){
+    sanitizeInput();
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(render, 180);
+  }
+  textInput.addEventListener('input', onType);
+})();
+</script>
+
+<script>
+(function(){
+  const passCheckInput = document.getElementById('passCheckInput');
+  const strengthFill = document.getElementById('strengthFill');
+  const strengthLabel = document.getElementById('strengthLabel');
+  const strengthChecks = document.getElementById('strengthChecks');
+  const genLen = document.getElementById('genLen');
+  const genLenVal = document.getElementById('genLenVal');
+  const optUpper = document.getElementById('optUpper');
+  const optLower = document.getElementById('optLower');
+  const optNumbers = document.getElementById('optNumbers');
+  const optSymbols = document.getElementById('optSymbols');
+  const btnGenerate = document.getElementById('btnGenerate');
+  const genResultRow = document.getElementById('genResultRow');
+  const genResult = document.getElementById('genResult');
+  const btnCopyGen = document.getElementById('btnCopyGen');
+
+  const COMMON_WEAK = ['123456','password','12345678','qwerty','123456789','12345','1234','111111',
+    '1234567','dragon','123123','baseball','iloveyou','trustno1','1234567890','letmein','monkey',
+    'football','abc123','000000','password1','admin','welcome'];
+
+  function checkStrength(pw){
+    const checks = [
+      {label:'8 حروف على الأقل', ok: pw.length >= 8},
+      {label:'12 حرف أو أكتر (أفضل)', ok: pw.length >= 12},
+      {label:'فيه حروف كبيرة (A-Z)', ok: /[A-Z]/.test(pw)},
+      {label:'فيه حروف صغيرة (a-z)', ok: /[a-z]/.test(pw)},
+      {label:'فيه أرقام (0-9)', ok: /[0-9]/.test(pw)},
+      {label:'فيه رموز (!@#$…)', ok: /[^A-Za-z0-9]/.test(pw)},
+      {label:'مش من الباسوردات الشائعة', ok: !COMMON_WEAK.includes(pw.toLowerCase())},
+    ];
+    let charset = 0;
+    if(/[a-z]/.test(pw)) charset += 26;
+    if(/[A-Z]/.test(pw)) charset += 26;
+    if(/[0-9]/.test(pw)) charset += 10;
+    if(/[^A-Za-z0-9]/.test(pw)) charset += 32;
+    const entropy = pw.length && charset ? pw.length * Math.log2(charset) : 0;
+
+    let score, label, color;
+    if(pw.length === 0){ score=0; label='اكتب باسورد عشان نقيّمه'; color='#e0918f'; }
+    else if(!checks[6].ok || entropy < 28){ score=15; label='ضعيف جداً — سهل التخمين'; color='#e0918f'; }
+    else if(entropy < 45){ score=40; label='ضعيف'; color='#e0918f'; }
+    else if(entropy < 60){ score=65; label='متوسط'; color='#e8c874'; }
+    else if(entropy < 80){ score=85; label='قوي'; color='#a4d98a'; }
+    else { score=100; label='قوي جداً 💪'; color='#7fd9a0'; }
+
+    return {checks, score, label, color};
+  }
+
+  function renderStrength(){
+    const pw = passCheckInput.value;
+    const r = checkStrength(pw);
+    strengthFill.style.width = r.score + '%';
+    strengthFill.style.background = r.color;
+    strengthLabel.textContent = r.label;
+    strengthLabel.style.color = pw ? r.color : '';
+    strengthChecks.innerHTML = '';
+    r.checks.forEach(c=>{
+      const li = document.createElement('li');
+      li.className = c.ok ? 'ok' : '';
+      li.innerHTML = '<span class="dot"></span>' + c.label;
+      strengthChecks.appendChild(li);
+    });
+  }
+  passCheckInput.addEventListener('input', renderStrength);
+  renderStrength();
+
+  genLen.addEventListener('input', ()=>{ genLenVal.textContent = genLen.value; });
+
+  function generatePassword(){
+    const len = parseInt(genLen.value, 10);
+    let pool = '';
+    if(optUpper.checked) pool += 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    if(optLower.checked) pool += 'abcdefghijkmnpqrstuvwxyz';
+    if(optNumbers.checked) pool += '23456789';
+    if(optSymbols.checked) pool += '!@#$%^&*()-_=+[]{}';
+    if(!pool){
+      alert('اختار نوع واحد على الأقل من الحروف/الأرقام/الرموز');
+      return;
+    }
+    const bytes = new Uint32Array(len);
+    crypto.getRandomValues(bytes);
+    let result = '';
+    for(let i=0;i<len;i++){
+      result += pool[bytes[i] % pool.length];
+    }
+    genResult.textContent = result;
+    genResultRow.style.display = 'flex';
+  }
+  btnGenerate.addEventListener('click', generatePassword);
+
+  btnCopyGen.addEventListener('click', ()=>{
+    const text = genResult.textContent;
+    if(!text) return;
+    const done = ()=>{
+      btnCopyGen.classList.add('copied');
+      setTimeout(()=> btnCopyGen.classList.remove('copied'), 1200);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(()=>{
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        try{ document.execCommand('copy'); done(); }catch(e){}
+        document.body.removeChild(ta);
+      });
+    }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const wheelNames = document.getElementById('wheelNames');
+  const btnSpin = document.getElementById('btnSpin');
+  const wheelCanvas = document.getElementById('wheelCanvas');
+  const wheelCtx = wheelCanvas.getContext('2d');
+  const wheelResult = document.getElementById('wheelResult');
+  const wheelConfetti = document.getElementById('wheelConfetti');
+
+  const PALETTE = ['#171008','#e8c874','#241c0c','#d9b46c','#0d0904','#c79a3a','#1b1408','#f0dca0'];
+  const DARK_IDX = [0,2,4,6];
+
+  let currentRotation = 0;
+  let spinning = false;
+
+  function getNames(){
+    return wheelNames.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  }
+
+  function drawWheel(){
+    const names = getNames().length ? getNames() : ['اكتب أسامي'];
+    const size = wheelCanvas.width;
+    const cx = size/2, cy = size/2, r = size/2 - 6;
+    wheelCtx.clearRect(0,0,size,size);
+    const n = names.length;
+    const slice = (2*Math.PI)/n;
+    names.forEach((name,i)=>{
+      const start = i*slice;
+      const end = start+slice;
+      const isDark = DARK_IDX.includes(i % PALETTE.length);
+      wheelCtx.beginPath();
+      wheelCtx.moveTo(cx,cy);
+      wheelCtx.arc(cx,cy,r,start,end);
+      wheelCtx.closePath();
+      wheelCtx.fillStyle = PALETTE[i % PALETTE.length];
+      wheelCtx.fill();
+      wheelCtx.strokeStyle = 'rgba(232,200,116,0.35)';
+      wheelCtx.lineWidth = 1.5;
+      wheelCtx.stroke();
+
+      wheelCtx.save();
+      wheelCtx.translate(cx,cy);
+      wheelCtx.rotate(start+slice/2);
+      wheelCtx.textAlign = 'right';
+      wheelCtx.textBaseline = 'middle';
+      wheelCtx.font = "bold 14px 'Cairo', sans-serif";
+      const label = name.length > 14 ? name.slice(0,13)+'…' : name;
+      wheelCtx.lineWidth = 3;
+      wheelCtx.strokeStyle = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)';
+      wheelCtx.strokeText(label, r-14, 0);
+      wheelCtx.fillStyle = isDark ? '#f3efe3' : '#1b1408';
+      wheelCtx.fillText(label, r-14, 0);
+      wheelCtx.restore();
+    });
+
+    // glossy highlight sweep for a 3D glass-like finish
+    wheelCtx.save();
+    const gloss = wheelCtx.createRadialGradient(cx, cy-r*0.45, r*0.05, cx, cy, r*1.05);
+    gloss.addColorStop(0, 'rgba(255,255,255,0.35)');
+    gloss.addColorStop(0.45, 'rgba(255,255,255,0.06)');
+    gloss.addColorStop(1, 'rgba(0,0,0,0.22)');
+    wheelCtx.beginPath(); wheelCtx.arc(cx,cy,r,0,2*Math.PI);
+    wheelCtx.fillStyle = gloss; wheelCtx.fill();
+    wheelCtx.restore();
+
+    // outer gold rim
+    wheelCtx.beginPath();
+    wheelCtx.arc(cx,cy,r-1.5,0,2*Math.PI);
+    wheelCtx.lineWidth = 4;
+    wheelCtx.strokeStyle = '#e8c874';
+    wheelCtx.stroke();
+  }
+  drawWheel();
+  wheelNames.addEventListener('input', ()=>{
+    if(!spinning){ drawWheel(); wheelResult.textContent = ''; wheelResult.classList.remove('show'); }
+  });
+
+  function burstConfetti(){
+    const colors = ['#e8c874','#f0dca0','#c79a3a','#fff8e6'];
+    for(let i=0;i<26;i++){
+      const s = document.createElement('span');
+      s.style.left = (Math.random()*100)+'%';
+      s.style.background = colors[Math.floor(Math.random()*colors.length)];
+      s.style.animationDelay = (Math.random()*0.25)+'s';
+      s.style.width = (4+Math.random()*4)+'px';
+      s.style.height = (8+Math.random()*6)+'px';
+      wheelConfetti.appendChild(s);
+    }
+    setTimeout(()=>{ wheelConfetti.innerHTML = ''; }, 1900);
+  }
+
+  function spin(){
+    if(spinning) return;
+    const names = getNames();
+    if(names.length < 2){
+      wheelResult.textContent = 'اكتب اسمين على الأقل 🙂';
+      return;
+    }
+    spinning = true;
+    btnSpin.disabled = true;
+    wheelResult.classList.remove('show');
+    wheelResult.textContent = '';
+
+    const n = names.length;
+    const sliceDeg = 360/n;
+    const winnerIndex = Math.floor(Math.random()*n);
+    const segCenterDeg = winnerIndex*sliceDeg + sliceDeg/2;
+    const jitter = (Math.random()-0.5) * (sliceDeg*0.6);
+    const targetPointDeg = segCenterDeg + jitter;
+    // pointer sits at the top of the wheel, which is 270deg in canvas-arc terms (0=east, clockwise)
+    let targetMod = (270 - targetPointDeg) % 360;
+    if(targetMod < 0) targetMod += 360;
+
+    const extraSpins = 9 + Math.floor(Math.random()*3);
+    const newRotation = currentRotation - (currentRotation % 360) + extraSpins*360 + targetMod;
+    currentRotation = newRotation;
+
+    wheelCanvas.style.transform = 'rotate(' + newRotation + 'deg)';
+
+    function onDone(e){
+      if(e.propertyName !== 'transform') return;
+      wheelCanvas.removeEventListener('transitionend', onDone);
+      spinning = false;
+      btnSpin.disabled = false;
+      wheelResult.textContent = '🎉 ' + names[winnerIndex];
+      wheelResult.classList.add('show');
+      burstConfetti();
+    }
+    wheelCanvas.addEventListener('transitionend', onDone);
+  }
+
+  btnSpin.addEventListener('click', spin);
+})();
+</script>
+
+<script>
+(function(){
+  // ===== Weather tool =====
+  const stage = document.getElementById('weatherTool');
+  const cityInput = document.getElementById('wxCityInput');
+  const searchBtn = document.getElementById('wxSearchBtn');
+  const locateBtn = document.getElementById('wxLocateBtn');
+  const suggestBox = document.getElementById('wxSuggest');
+  const statusBox = document.getElementById('wxStatus');
+  const currentBox = document.getElementById('wxCurrent');
+  const elPlace = document.getElementById('wxPlace');
+  const elUpdated = document.getElementById('wxUpdated');
+  const elEmoji = document.getElementById('wxEmoji');
+  const elTemp = document.getElementById('wxTemp');
+  const elDesc = document.getElementById('wxDesc');
+  const elFeels = document.getElementById('wxFeels');
+  const elHumidity = document.getElementById('wxHumidity');
+  const elWind = document.getElementById('wxWind');
+  const elPressure = document.getElementById('wxPressure');
+  const elUv = document.getElementById('wxUv');
+  const elHourly = document.getElementById('wxHourly');
+  const elDaily = document.getElementById('wxDaily');
+  const refreshBtn = document.getElementById('wxRefreshBtn');
+
+  const elMoonPhase = document.getElementById('wxMoonPhase');
+  const elMoonIconSpan = document.querySelector('#wxMoonIcon span');
+  const elMoonArcFill = document.getElementById('wxMoonArcFill');
+  const elMoonArcDot = document.getElementById('wxMoonArcDot');
+  const elMoonRemain = document.getElementById('wxMoonRemain');
+  const elMoonrise = document.getElementById('wxMoonrise');
+  const elMoonset = document.getElementById('wxMoonset');
+  const elUv2 = document.getElementById('wxUv2');
+  const elSunArcFill = document.getElementById('wxSunArcFill');
+  const elSunArcDot = document.getElementById('wxSunArcDot');
+  const elSunRemain = document.getElementById('wxSunRemain');
+  const elSunriseTime = document.getElementById('wxSunriseTime');
+  const elSunsetTime = document.getElementById('wxSunsetTime');
+
+  const state = { initialized:false, lat:null, lon:null, placeName:'', lastUpdate:null, refreshTimer:null, tickTimer:null, geoSearchTimer:null };
+
+  // ---- Weather code → look & feel ----
+  function wxInfo(code, isDay){
+    const day = !!isDay;
+    if(code === 0) return { emoji: day ? '☀️' : '🌕', desc:'سماء صافية', cat:'clear' };
+    if(code === 1) return { emoji: day ? '🌤️' : '🌕', desc:'صافي غالبًا', cat:'clear' };
+    if(code === 2) return { emoji: day ? '⛅' : '☁️', desc:'غائم جزئيًا', cat:'cloudy' };
+    if(code === 3) return { emoji:'☁️', desc:'غائم تمامًا', cat:'cloudy' };
+    if(code === 45 || code === 48) return { emoji:'🌫️', desc:'شبورة', cat:'fog' };
+    if([51,53,55].includes(code)) return { emoji:'🌦️', desc:'رذاذ خفيف', cat:'rain' };
+    if([56,57].includes(code)) return { emoji:'🌧️', desc:'رذاذ متجمد', cat:'rain' };
+    if([61,63,65].includes(code)) return { emoji:'🌧️', desc:'أمطار', cat:'rain' };
+    if([66,67].includes(code)) return { emoji:'🌧️', desc:'أمطار متجمدة', cat:'rain' };
+    if([80,81,82].includes(code)) return { emoji:'🌦️', desc:'زخات مطر', cat:'rain' };
+    if([71,73,75,77].includes(code)) return { emoji:'❄️', desc:'تساقط ثلج', cat:'snow' };
+    if([85,86].includes(code)) return { emoji:'🌨️', desc:'زخات ثلج', cat:'snow' };
+    if([95,96,99].includes(code)) return { emoji:'⛈️', desc:'عاصفة رعدية', cat:'storm' };
+    return { emoji:'🌡️', desc:'—', cat:'clear' };
+  }
+  function dataWxFor(code, isDay){
+    const info = wxInfo(code, isDay);
+    if(info.cat === 'storm' || info.cat === 'fog') return info.cat;
+    return info.cat + (isDay ? '-day' : '-night');
+  }
+  function windCompass(deg){
+    const dirs = ['شمال','شمال شرقي','شرق','جنوب شرقي','جنوب','جنوب غربي','غرب','شمال غربي'];
+    return dirs[Math.round(deg/45) % 8];
+  }
+
+  // ---- Sun & Moon card ----
+  const SYNODIC_MONTH = 29.530588861;
+  const MOON_PHASE_NAMES = ['محاق (قمر جديد)','هلال متزايد','تربيع أول','أحدب متزايد','بدر (اكتمال)','أحدب متناقص','تربيع أخير','هلال متناقص'];
+
+  function moonPhaseInfo(date){
+    // known reference new moon: 2000-01-06 18:14 UTC
+    const ref = Date.UTC(2000,0,6,18,14,0);
+    let age = (date.getTime() - ref) / 86400000 % SYNODIC_MONTH;
+    if(age < 0) age += SYNODIC_MONTH;
+    const illum = (1 - Math.cos(2*Math.PI*age/SYNODIC_MONTH)) / 2;
+    const idx = Math.floor((age/SYNODIC_MONTH)*8 + 0.5) % 8;
+    return { age, illum, name: MOON_PHASE_NAMES[idx], waxing: age < SYNODIC_MONTH/2 };
+  }
+
+  // Approximate moonrise/moonset: the Moon's meridian transit shifts about 48.76 min later
+  // per day relative to the Sun's transit (a full 24h shift over one synodic month). We then
+  // assume a day-length around that transit similar to the Sun's — a reasonable approximation,
+  // not a precise ephemeris (real times can be off by up to roughly an hour depending on season/latitude).
+  function computeMoonTimes(sunrise, sunset, ageDays){
+    const solarNoon = new Date((sunrise.getTime() + sunset.getTime())/2);
+    const halfDay = (sunset.getTime() - sunrise.getTime())/2;
+    const offsetMin = (ageDays * 48.76) % 1440;
+    const transit = new Date(solarNoon.getTime() + offsetMin*60000);
+    return { moonrise: new Date(transit.getTime() - halfDay), moonset: new Date(transit.getTime() + halfDay), transit };
+  }
+
+  function fmtDuration(ms){
+    let mins = Math.max(0, Math.round(ms/60000));
+    const h = Math.floor(mins/60), m = mins%60;
+    return h > 0 ? (h+' ساعة '+m+' دقيقة') : (m+' دقيقة');
+  }
+
+  function updateArcVisual(fillEl, dotEl, fraction){
+    fraction = Math.max(0, Math.min(1, fraction));
+    const track = fillEl.closest('svg').querySelector('.wx-sm-arc-track');
+    const len = track.getTotalLength();
+    fillEl.style.strokeDasharray = len;
+    fillEl.style.strokeDashoffset = len*(1-fraction);
+    const pt = track.getPointAtLength(len*fraction);
+    dotEl.setAttribute('cx', pt.x);
+    dotEl.setAttribute('cy', pt.y);
+  }
+
+  const MOON_PHASE_EN_TO_AR = {
+    'New Moon':'محاق (قمر جديد)', 'Waxing Crescent':'هلال متزايد', 'First Quarter':'تربيع أول',
+    'Waxing Gibbous':'أحدب متزايد', 'Full Moon':'بدر (اكتمال)', 'Waning Gibbous':'أحدب متناقص',
+    'Last Quarter':'تربيع أخير', 'Waning Crescent':'هلال متناقص'
+  };
+
+  function updateSunMoonCard(data, moonData){
+    if(!data.daily || !data.daily.sunrise) return;
+    const now = new Date();
+    const sunrise = new Date(data.daily.sunrise[0]);
+    const sunset = new Date(data.daily.sunset[0]);
+
+    let sunFrac;
+    if(now <= sunrise) sunFrac = 0;
+    else if(now >= sunset) sunFrac = 1;
+    else sunFrac = (now - sunrise)/(sunset - sunrise);
+    updateArcVisual(elSunArcFill, elSunArcDot, sunFrac);
+    if(now < sunrise) elSunRemain.textContent = 'الشروق بعد ' + fmtDuration(sunrise - now);
+    else if(now < sunset) elSunRemain.textContent = 'الغروب بعد ' + fmtDuration(sunset - now);
+    else elSunRemain.textContent = 'الشمس غاربة الآن';
+
+    // Prefer real data from sunrise-sunset.org's free API; fall back to our own
+    // approximation if that request failed or the field wasn't returned.
+    const apiPhaseName = moonData && moonData.moon_phase && MOON_PHASE_EN_TO_AR[moonData.moon_phase];
+    const apiIllum = moonData && typeof moonData.moon_illumination === 'number' ? moonData.moon_illumination : null;
+    const fallback = moonPhaseInfo(now);
+    const phaseName = apiPhaseName || fallback.name;
+    const illumPct = apiIllum != null ? Math.round(apiIllum) : Math.round(fallback.illum*100);
+    const WANING_PHASES_EN = ['Waning Gibbous','Last Quarter','Waning Crescent'];
+    const waxing = moonData && moonData.moon_phase ? !WANING_PHASES_EN.includes(moonData.moon_phase) : fallback.waxing;
+
+    elMoonPhase.textContent = phaseName;
+    elMoonIconSpan.style.width = illumPct+'%';
+    if(waxing){ elMoonIconSpan.style.right = '0'; elMoonIconSpan.style.left = 'auto'; }
+    else { elMoonIconSpan.style.left = '0'; elMoonIconSpan.style.right = 'auto'; }
+
+    let moonrise = moonData && moonData.moonrise ? new Date(moonData.moonrise) : null;
+    let moonset = moonData && moonData.moonset ? new Date(moonData.moonset) : null;
+    if(!moonrise || !moonset){
+      const computed = computeMoonTimes(sunrise, sunset, fallback.age);
+      moonrise = moonrise || computed.moonrise;
+      moonset = moonset || computed.moonset;
+    }
+    elMoonrise.textContent = fmtHour(moonrise.toISOString());
+    elMoonset.textContent = fmtHour(moonset.toISOString());
+    let moonFrac;
+    if(now <= moonrise) moonFrac = 0;
+    else if(now >= moonset) moonFrac = 1;
+    else moonFrac = (now - moonrise)/(moonset - moonrise);
+    updateArcVisual(elMoonArcFill, elMoonArcDot, moonFrac);
+    if(now < moonrise) elMoonRemain.textContent = 'طلوع القمر بعد ' + fmtDuration(moonrise - now);
+    else if(now < moonset) elMoonRemain.textContent = 'أفول القمر بعد ' + fmtDuration(moonset - now);
+    else elMoonRemain.textContent = 'القمر غارب الآن';
+  }
+
+  // ---- Animated background particles (generated once, shown/hidden per condition via CSS) ----
+  function rnd(min,max){ return Math.random()*(max-min)+min; }
+  function buildParticles(){
+    const clouds = document.getElementById('wxClouds');
+    const rain = document.getElementById('wxRain');
+    const snow = document.getElementById('wxSnow');
+    const stars = document.getElementById('wxStars');
+    const fog = document.getElementById('wxFog');
+
+    for(let i=0;i<5;i++){
+      const c = document.createElement('div');
+      c.className='wx-cloud';
+      const w = rnd(70,150), h = w*0.5;
+      c.style.width=w+'px'; c.style.height=h+'px';
+      c.style.top = rnd(10,60)+'px';
+      c.style.animationDuration = rnd(18,34)+'s';
+      c.style.animationDelay = (-rnd(0,30))+'s';
+      clouds.appendChild(c);
+    }
+    for(let i=0;i<40;i++){
+      const d = document.createElement('div');
+      d.className='wx-drop';
+      d.style.left = rnd(0,100)+'%';
+      d.style.animationDuration = rnd(0.5,1.1)+'s';
+      d.style.animationDelay = (-rnd(0,2))+'s';
+      rain.appendChild(d);
+    }
+    for(let i=0;i<28;i++){
+      const f = document.createElement('div');
+      f.className='wx-flake';
+      f.textContent='❄';
+      f.style.left = rnd(0,100)+'%';
+      f.style.fontSize = rnd(8,15)+'px';
+      f.style.animationDuration = rnd(4,9)+'s';
+      f.style.animationDelay = (-rnd(0,9))+'s';
+      snow.appendChild(f);
+    }
+    for(let i=0;i<60;i++){
+      const s = document.createElement('div');
+      s.className='wx-star';
+      s.style.top = rnd(0,70)+'%';
+      s.style.left = rnd(0,100)+'%';
+      s.style.animationDelay = (-rnd(0,2.6))+'s';
+      stars.appendChild(s);
+    }
+    for(let i=0;i<3;i++){
+      const b = document.createElement('div');
+      b.className='wx-fog-band';
+      b.style.top = (20+i*40)+'px';
+      b.style.animationDuration = rnd(14,22)+'s';
+      b.style.animationDirection = i%2 ? 'alternate' : 'alternate-reverse';
+      fog.appendChild(b);
+    }
+  }
+  buildParticles();
+
+  // ---- Rendering ----
+  function fmtHour(iso){
+    const d = new Date(iso);
+    return d.toLocaleTimeString('ar-EG', {hour:'numeric', minute:'2-digit', hour12:true});
+  }
+  function fmtDay(iso, idx){
+    if(idx === 0) return 'النهاردة';
+    const d = new Date(iso);
+    return d.toLocaleDateString('ar-EG', {weekday:'short'});
+  }
+  function relativeTime(ts){
+    const diffMin = Math.round((Date.now()-ts)/60000);
+    if(diffMin <= 0) return 'آخر تحديث: الآن';
+    if(diffMin === 1) return 'آخر تحديث: من دقيقة';
+    if(diffMin < 60) return 'آخر تحديث: من '+diffMin+' دقايق';
+    const h = Math.round(diffMin/60);
+    return 'آخر تحديث: من '+h+' ساعة';
+  }
+
+  function aqiInfo(aqi){
+    if(aqi == null) return { label:'مش متاحة', emoji:'❔' };
+    if(aqi <= 50) return { label:'صحية 🙂', emoji:'🟢' };
+    if(aqi <= 100) return { label:'متوسطة', emoji:'🟡' };
+    if(aqi <= 150) return { label:'غير صحية لفئات حساسة', emoji:'🟠' };
+    if(aqi <= 200) return { label:'غير صحية', emoji:'🔴' };
+    if(aqi <= 300) return { label:'غير صحية جدًا', emoji:'🟣' };
+    return { label:'خطيرة', emoji:'🟤' };
+  }
+
+  function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+  function mode(arr){
+    if(!arr.length) return 0;
+    const counts = {};
+    arr.forEach(v=>{ counts[v] = (counts[v]||0)+1; });
+    return Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);
+  }
+
+  function summarize(partLabel, avgTemp, cloud, rainProb, stormProb, windMax){
+    let sky;
+    if(cloud < 20) sky = 'صافية';
+    else if(cloud < 50) sky = 'غيوم خفيفة';
+    else if(cloud < 80) sky = 'غائمة جزئيًا';
+    else sky = 'مغيمة تمامًا';
+
+    let temp;
+    if(avgTemp >= 33) temp = 'جو حار';
+    else if(avgTemp >= 26) temp = 'جو دافئ ولطيف';
+    else if(avgTemp >= 18) temp = 'جو معتدل';
+    else temp = 'جو بارد نسبيًا';
+
+    let sentence = temp+'، والسماء '+sky;
+    if(stormProb >= 25) sentence += '، مع احتمال عواصف رعدية';
+    else if(rainProb >= 40) sentence += '، مع احتمال هطول أمطار';
+    else if(rainProb >= 15) sentence += '، مع فرصة ضعيفة لشبورة أو رذاذ خفيف';
+    if(windMax >= 35) sentence += '، ورياح نشطة نسبيًا';
+    return sentence + '.';
+  }
+
+  function buildDayNightHTML(data, aqiData, dateStr){
+    const times = data.hourly.time;
+    // day window: 06:00–18:00 of dateStr | night window: 18:00 of dateStr – 06:00 next day
+    const dayStart = dateStr+'T06:00', dayEnd = dateStr+'T18:00';
+    const nightStart = dateStr+'T18:00';
+    const [ny, nm, nd] = dateStr.split('-').map(Number);
+    const nextD = new Date(ny, nm-1, nd+1);
+    const nextDateStr = nextD.getFullYear()+'-'+String(nextD.getMonth()+1).padStart(2,'0')+'-'+String(nextD.getDate()).padStart(2,'0');
+    const nightEnd = nextDateStr+'T06:00';
+
+    function idxRange(start, end){
+      const out = [];
+      for(let i=0;i<times.length;i++){ if(times[i] >= start && times[i] < end) out.push(i); }
+      return out;
+    }
+    const dayIdx = idxRange(dayStart, dayEnd);
+    const nightIdx = idxRange(nightStart, nightEnd);
+
+    function buildPart(label, emoji, idxs){
+      if(!idxs.length){
+        return '<div class="wx-daypart"><div class="wx-daypart-title">'+emoji+' '+label+'</div><div class="wx-daypart-summary">بيانات غير متاحة لهذا الوقت.</div></div>';
+      }
+      const temps = idxs.map(i=>data.hourly.temperature_2m[i]);
+      const clouds = idxs.map(i=>data.hourly.cloud_cover[i]);
+      const rainP = idxs.map(i=>data.hourly.precipitation_probability[i]);
+      const humid = idxs.map(i=>data.hourly.relative_humidity_2m[i]);
+      const winds = idxs.map(i=>data.hourly.wind_speed_10m[i]);
+      const gusts = idxs.map(i=>data.hourly.wind_gusts_10m[i]);
+      const codes = idxs.map(i=>data.hourly.weather_code[i]);
+      const stormIdxs = idxs.filter(i=>[95,96,99].includes(data.hourly.weather_code[i]));
+      const stormProb = stormIdxs.length ? Math.max(...stormIdxs.map(i=>data.hourly.precipitation_probability[i])) : 0;
+
+      let aqiAvg = null;
+      if(aqiData && aqiData.hourly && aqiData.hourly.time && aqiData.hourly.us_aqi){
+        const aqiVals = idxs.map(i=>{
+          const t = times[i];
+          const ai = aqiData.hourly.time.indexOf(t);
+          return ai !== -1 ? aqiData.hourly.us_aqi[ai] : null;
+        }).filter(v=>v != null);
+        if(aqiVals.length) aqiAvg = Math.round(avg(aqiVals));
+      }
+      const aq = aqiInfo(aqiAvg);
+
+      const avgTemp = avg(temps), avgCloud = avg(clouds), maxRain = Math.max(...rainP);
+      const avgHumid = Math.round(avg(humid));
+      const maxWind = Math.round(Math.max(...winds));
+      const maxGust = Math.round(Math.max(...gusts));
+      const dominantCode = mode(codes);
+      const dInfo = wxInfo(dominantCode, label === 'نهارًا');
+
+      const summary = summarize(label, avgTemp, avgCloud, maxRain, stormProb, maxWind);
+
+      return '<div class="wx-daypart">'+
+        '<div class="wx-daypart-title">'+emoji+' '+label+' '+dInfo.emoji+'</div>'+
+        '<div class="wx-daypart-summary">'+summary+'</div>'+
+        '<div class="wx-daypart-grid">'+
+          '<div class="wx-daypart-item"><span>🌡️ الحرارة</span><span>'+Math.round(avgTemp)+'°</span></div>'+
+          '<div class="wx-daypart-item"><span>💧 الرطوبة</span><span>'+avgHumid+'%</span></div>'+
+          '<div class="wx-daypart-item"><span>☁️ الغطاء السحابي</span><span>'+Math.round(avgCloud)+'%</span></div>'+
+          '<div class="wx-daypart-item"><span>🌧️ احتمال المطر</span><span>'+Math.round(maxRain)+'%</span></div>'+
+          '<div class="wx-daypart-item"><span>⛈️ احتمال عواصف رعدية</span><span>'+Math.round(stormProb)+'%</span></div>'+
+          '<div class="wx-daypart-item"><span>💨 سرعة الرياح</span><span>'+maxWind+' كم/س</span></div>'+
+          '<div class="wx-daypart-item"><span>🌬️ هبات الرياح</span><span>'+maxGust+' كم/س</span></div>'+
+          '<div class="wx-daypart-item"><span>'+aq.emoji+' جودة الهواء</span><span>'+(aqiAvg!=null ? aqiAvg+' — '+aq.label : aq.label)+'</span></div>'+
+        '</div></div>';
+    }
+
+    return buildPart('نهارًا','🌞', dayIdx) + buildPart('ليلاً','🌙', nightIdx);
+  }
+
+  function render(data, placeName, aqiData, moonData){
+    const cur = data.current;
+    const info = wxInfo(cur.weather_code, cur.is_day === 1);
+    stage.setAttribute('data-wx', dataWxFor(cur.weather_code, cur.is_day === 1));
+
+    elPlace.textContent = placeName;
+    elEmoji.textContent = info.emoji;
+    elTemp.textContent = Math.round(cur.temperature_2m)+'°';
+    elDesc.textContent = info.desc;
+    elFeels.textContent = 'الإحساس بالحرارة: '+Math.round(cur.apparent_temperature)+'°';
+    elHumidity.textContent = Math.round(cur.relative_humidity_2m)+'%';
+    elWind.textContent = Math.round(cur.wind_speed_10m)+' كم/س '+windCompass(cur.wind_direction_10m);
+    elPressure.textContent = Math.round(cur.surface_pressure)+' hPa';
+
+    // UV: nearest hourly value to current time
+    let uvNow = '—';
+    if(data.hourly && data.hourly.time){
+      const nowIso = cur.time.slice(0,13);
+      let idx = data.hourly.time.findIndex(t => t.slice(0,13) === nowIso);
+      if(idx === -1) idx = 0;
+      if(data.hourly.uv_index) uvNow = Math.round(data.hourly.uv_index[idx]);
+    }
+    elUv.textContent = uvNow;
+    elUv2.textContent = uvNow;
+
+    if(data.daily){
+      elSunriseTime.textContent = fmtHour(data.daily.sunrise[0]);
+      elSunsetTime.textContent = fmtHour(data.daily.sunset[0]);
+      updateSunMoonCard(data, moonData);
+    }
+
+    // Hourly strip: next 24h from now
+    elHourly.innerHTML = '';
+    if(data.hourly && data.hourly.time){
+      const nowIso = cur.time.slice(0,13);
+      let startIdx = data.hourly.time.findIndex(t => t.slice(0,13) === nowIso);
+      if(startIdx === -1) startIdx = 0;
+      for(let i=startIdx; i<Math.min(startIdx+24, data.hourly.time.length); i++){
+        const hInfo = wxInfo(data.hourly.weather_code[i], true);
+        const cell = document.createElement('div');
+        cell.className = 'wx-hour';
+        cell.innerHTML = '<div class="wx-hour-time">'+(i===startIdx?'الآن':fmtHour(data.hourly.time[i]))+'</div>'+
+          '<div class="wx-hour-emoji">'+hInfo.emoji+'</div>'+
+          '<div class="wx-hour-temp">'+Math.round(data.hourly.temperature_2m[i])+'°</div>';
+        elHourly.appendChild(cell);
+      }
+    }
+
+    // Daily list
+    elDaily.innerHTML = '';
+    if(data.daily && data.daily.time){
+      const allMax = data.daily.temperature_2m_max, allMin = data.daily.temperature_2m_min;
+      const lo = Math.min(...allMin), hi = Math.max(...allMax);
+      for(let i=0;i<data.daily.time.length;i++){
+        const dInfo = wxInfo(data.daily.weather_code[i], true);
+        const min = Math.round(allMin[i]), max = Math.round(allMax[i]);
+        const left = ((min-lo)/Math.max(1,(hi-lo)))*100;
+        const width = Math.max(8, ((max-min)/Math.max(1,(hi-lo)))*100);
+
+        const wrap = document.createElement('div');
+        const row = document.createElement('div');
+        row.className = 'wx-day';
+        row.innerHTML = '<div class="wx-day-name">'+fmtDay(data.daily.time[i], i)+'</div>'+
+          '<div class="wx-day-emoji">'+dInfo.emoji+'</div>'+
+          '<div class="wx-day-bar"><span style="left:'+left+'%; width:'+width+'%;"></span></div>'+
+          '<div class="wx-day-range">'+min+'° / '+max+'°</div>'+
+          '<div class="wx-day-chevron">▾</div>';
+        const detail = document.createElement('div');
+        detail.className = 'wx-day-detail';
+        let built = false;
+        row.addEventListener('click', ()=>{
+          const willOpen = !detail.classList.contains('open');
+          row.classList.toggle('open', willOpen);
+          detail.classList.toggle('open', willOpen);
+          if(willOpen && !built){
+            detail.innerHTML = '<div class="wx-day-detail-inner">'+buildDayNightHTML(data, aqiData, data.daily.time[i])+'</div>';
+            built = true;
+          }
+        });
+        wrap.appendChild(row);
+        wrap.appendChild(detail);
+        elDaily.appendChild(wrap);
+      }
+    }
+
+    state.lastUpdate = Date.now();
+    elUpdated.textContent = relativeTime(state.lastUpdate);
+
+    statusBox.classList.add('hide');
+    currentBox.classList.add('show');
+  }
+
+  function tickRelative(){
+    if(state.lastUpdate) elUpdated.textContent = relativeTime(state.lastUpdate);
+    if(state.lastData) updateSunMoonCard(state.lastData, state.lastMoon);
+  }
+
+  // ---- Fetching ----
+  async function loadWeather(lat, lon, placeName){
+    state.lat = lat; state.lon = lon; state.placeName = placeName;
+    try{
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+        '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure'+
+        '&hourly=temperature_2m,weather_code,uv_index,precipitation_probability,cloud_cover,wind_speed_10m,wind_gusts_10m,relative_humidity_2m'+
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max'+
+        '&timezone=auto&forecast_days=7';
+      const aqiUrl = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+lat+'&longitude='+lon+
+        '&hourly=us_aqi&timezone=auto&forecast_days=7';
+      const moonUrl = 'https://api.sunrise-sunset.org/v2?lat='+lat+'&lng='+lon;
+      const [res, aqiRes, moonRes] = await Promise.all([fetch(url), fetch(aqiUrl).catch(()=>null), fetch(moonUrl).catch(()=>null)]);
+      if(!res.ok) throw new Error('forecast failed');
+      const data = await res.json();
+      let aqiData = null;
+      try{ if(aqiRes && aqiRes.ok) aqiData = await aqiRes.json(); }catch(e){ aqiData = null; }
+      let moonData = null;
+      try{ if(moonRes && moonRes.ok) moonData = await moonRes.json(); }catch(e){ moonData = null; }
+      state.lastData = data; state.lastAqi = aqiData; state.lastMoon = moonData;
+      render(data, placeName, aqiData, moonData);
+    }catch(err){
+      statusBox.textContent = 'مقدرش أجيب بيانات الطقس دلوقتي. جرّب تاني.';
+      statusBox.classList.remove('hide');
+    }
+  }
+
+  async function reverseGeocode(lat, lon){
+    try{
+      const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=ar');
+      const data = await res.json();
+      return data.city || data.locality || data.principalSubdivision || 'موقعك الحالي';
+    }catch(err){
+      return 'موقعك الحالي';
+    }
+  }
+
+  function initLocation(){
+    statusBox.textContent = 'بيحدد موقعك عشان يجيبلك الطقس…';
+    statusBox.classList.remove('hide');
+    if(!navigator.geolocation){
+      statusBox.textContent = 'مفيش دعم لتحديد الموقع في المتصفح ده — دور على مدينتك تحت 🔎';
+      cityInput.focus();
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos)=>{
+        const { latitude, longitude } = pos.coords;
+        const name = await reverseGeocode(latitude, longitude);
+        await loadWeather(latitude, longitude, name);
+        startAutoRefresh();
+      },
+      ()=>{
+        statusBox.textContent = 'مسمحتش بالوصول للموقع — محتاج تدور على مدينتك تحت 🔎';
+        cityInput.focus();
+      },
+      { enableHighAccuracy:false, timeout:10000, maximumAge:300000 }
+    );
+  }
+
+  function startAutoRefresh(){
+    stopAutoRefresh();
+    state.refreshTimer = setInterval(()=>{
+      if(state.lat != null) loadWeather(state.lat, state.lon, state.placeName);
+    }, 10*60*1000); // every 10 minutes — real-world station data doesn't change faster than this
+    state.tickTimer = setInterval(tickRelative, 30000);
+  }
+  function stopAutoRefresh(){
+    if(state.refreshTimer) clearInterval(state.refreshTimer);
+    if(state.tickTimer) clearInterval(state.tickTimer);
+    state.refreshTimer = null; state.tickTimer = null;
+  }
+
+  // ---- Search ----
+  async function searchCity(q){
+    if(!q.trim()) return;
+    suggestBox.innerHTML = '';
+    try{
+      const res = await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.trim())+'&count=5&language=ar&format=json');
+      const data = await res.json();
+      if(!data.results || !data.results.length){
+        suggestBox.innerHTML = '<button type="button" disabled style="opacity:.6;">مفيش نتايج لـ "'+q+'"</button>';
+        return;
+      }
+      data.results.forEach(r=>{
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const parts = [r.name, r.admin1, r.country].filter(Boolean);
+        btn.textContent = parts.join('، ');
+        btn.addEventListener('click', ()=>{
+          suggestBox.innerHTML = '';
+          cityInput.value = '';
+          currentBox.classList.remove('show');
+          statusBox.textContent = 'بيجيب الطقس…';
+          statusBox.classList.remove('hide');
+          loadWeather(r.latitude, r.longitude, parts.join('، '));
+          startAutoRefresh();
+        });
+        suggestBox.appendChild(btn);
+      });
+    }catch(err){
+      suggestBox.innerHTML = '<button type="button" disabled style="opacity:.6;">حصل خطأ في البحث</button>';
+    }
+  }
+
+  searchBtn.addEventListener('click', ()=> searchCity(cityInput.value));
+  cityInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') searchCity(cityInput.value); });
+  cityInput.addEventListener('input', ()=>{
+    clearTimeout(state.geoSearchTimer);
+    const q = cityInput.value;
+    if(q.trim().length < 2){ suggestBox.innerHTML = ''; return; }
+    state.geoSearchTimer = setTimeout(()=> searchCity(q), 450);
+  });
+  locateBtn.addEventListener('click', ()=>{
+    currentBox.classList.remove('show');
+    initLocation();
+  });
+  refreshBtn.addEventListener('click', ()=>{
+    if(state.lat == null) return;
+    refreshBtn.classList.add('spinning');
+    loadWeather(state.lat, state.lon, state.placeName).finally(()=>{
+      setTimeout(()=> refreshBtn.classList.remove('spinning'), 500);
+    });
+  });
+
+  window.__wxOnOpen = function(){
+    if(!state.initialized){
+      state.initialized = true;
+      initLocation();
+    } else if(state.lat != null){
+      startAutoRefresh();
+      tickRelative();
+    }
+  };
+  window.__wxOnClose = function(){
+    stopAutoRefresh();
+  };
 })();
 </script>
 </body>
